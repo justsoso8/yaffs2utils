@@ -1,0 +1,132 @@
+yaffs2utils
+-----------
+The yaffs2utils is the collection of utilities to make/extract a YAFFS2/YAFFS1
+image for Linux.
+
+Currently, it inclueds the following tools:
+(1) mkyaffs2: making a yaffs2 (yaffs1) image 
+(2) unyaffs2: extract a yaffs2 (yaffs1) image made by mkyaffs2.
+(3) unspare2: extract the spare(oob) layout from the NAND device.
+
+This project is developed under the Debian Linux 5 (code Lenny). It can make a
+yaffs2 image to be ran under my embedded system (Linux 2.6.20), and extract a
+yaffs2 image made by itself. 
+
+Due to some lack of the official utilities from yaffs2.net (A image made from
+its "mkyaffs2image" tool cannot be ran normally under my embedded system because
+of the wrong OOB origination), I re-wrote it almost and create the "mkyaffs2"
+tool to make a yaffs2 image for Linux 2.6.20. A tool named "unyaffs2" is also
+provided to extract the image made from its "mkyaffs2". The license for this 
+package is stated as GPLv2 only.
+
+Making a yaffs1 image to be ran properly is NOT verified, since I don't have an
+embedded system device with the old NAND flash (512k page). I will be glad if
+someone can help me to verify the integrity to make and extract a yaffs1 image.
+
+* Project Page
+
+	http://code.google.com/p/yaffs2utils/
+
+
+HOWTO
+-----
+Building the source by "make", then enjoying them.
+
+
+Usage
+-----
+* mkyaffs2
+
+	./mkyaffs2 [-h] [-e] [-p pagesize] [-s sparesize] [-o oobimg] dirname imgfile
+
+* unyaffs2
+
+	./unyaffs2 [-h] [-e] [-p pagesize] [-s sparesize] [-o oobimg] [-f file] imgfile dirname
+
+* unspare2
+
+	./unspare2 [-h] [-e] devfile imgfile
+
+After making a yaffs2 image, the tool "nandwrite" in the mtd-utils can be used
+to recode data into the flash (with oob option), such as:
+
+	nandwrite -a -o /dev/mtd${MTDNUM} ${YAFFS2IMAGE}
+
+The option '-p' and '-s' can specify the page and spare size of the images, and
+the information of the page and spare size should be available from your NAND
+flash datasheet. If the oob layout is differed from the Linux default, the tool
+"unspare2" can be used to extract the oob layout from the NAND device. If the
+endian is different from your building system, The option "-e" is required while
+executing the "unspare2" on the targets. Finally, by the option '-o' to specify
+the oob image while using the "mkyaffs2/unyaffs2" can create/extract the YAFFS
+image with the various oob layout for the different NAND devices.
+
+
+Android
+-------
+Recently, I found that the most Android images are made from the official YAFFS2
+tool - "mkyaffs2image". As the discussion in the previous section "yaffs2utils",
+an image created by the official YAFFS2 tools (mkyaffs2image) can not be run on
+the native Linux, because its oob layout is different from the default one in
+the Linux MTD subsystem.
+
+For an image is requested to be created/extracted with the compatibilities of
+the one made by the official YFFS2 tool (mkyaffs2image), such as Android uses,
+some methods are described:
+
+1. Enable the CFLAGS in Makefile
+
+   #CFLAGS	+= _HAVE_ANDROID
+
+
+2. Modify the default the oob layout in the source by the following patch:
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+--- src.old/yaffs2utils_ecc.h	2011-06-20 16:23:45.000000000 +0800
++++ src.new/yaffs2utils_ecc.h	2011-06-20 16:22:55.000000000 +0800
+@@ -32,7 +32,8 @@
+         .eccpos = {40, 41, 42, 43, 44, 45, 46, 47,
+                    48, 49, 50, 51, 52, 53, 54, 55,
+                    56, 57, 58, 59, 60, 61, 62, 63},
+-        .oobfree = {{.offset = 2, .length = 38}},
++//        .oobfree = {{.offset = 2, .length = 38}},
++        .oobfree = {{.offset = 0, .length = 38}},
+ };
+ 
+ static struct nand_ecclayout nand_oob_user = {0};
+--------------------------------------------------------------------
+
+3. Use "-o" option to specify the oob image, which can be available by using the
+   tool "unspare2" on the target device, while creating/extracting the image.
+
+
+LICENSE
+-------
+Except files under "src/yaffs2", yaffs2utils is published as GNU GPL version 2.
+Files under "src/yaffs2" are branched from the official YAFFS2 and their license
+are announced in their header.
+
+
+TODO
+----
+1. Verify the implementation for yaffs1 images.
+2. Extract the runtime image dumpped directly from the NAND flash.
+
+
+NOTE
+----
+Files under "src/yaffs2" is branched from the official YAFFS2, because of the
+compiling issues of the inconstant naming rules in the official YAFFS2 source.
+These files are required by the current yaffs2utils. I will continue updating
+these files untils the oficial source is integrated into the Linux kernel or it
+has a stable release.
+
+
+SPECIAL THANKS
+--------------
+1. Stijn Devriendt <HIGHGuY@gmail.com>
+
+
+=============
+Luen-Yung Lin
+<penguin.lin@gmail.com>
