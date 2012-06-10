@@ -29,7 +29,7 @@ CFLAGS		+= -Wall -Wshadow -Winline -Wpointer-arith -Wnested-externs \
 
 CFLAGS		+= -D_HAVE_MMAP
 
-#CFLAGS		+= -D_HAVE_ANDROID
+CFLAGS		+= -D_HAVE_ANDROID
 
 LDFLAGS		+= -lm
 
