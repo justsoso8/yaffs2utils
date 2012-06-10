@@ -1,0 +1,6 @@
+mkyaffs2
+unspare2
+unyaffs2
+
+*.o
+yaffs2/*.o
